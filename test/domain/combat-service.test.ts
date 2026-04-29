@@ -8,6 +8,7 @@ import { Adventurer } from '../../src/domain/adventurer.js';
 import { Monster } from '../../src/domain/monster.js';
 import { Weapon } from '../../src/domain/weapon.js';
 import { IllegalPotionUsageException } from '../../src/domain/exception/illegal-potion-usage-exception.js';
+import {PotionLimitUsageReachedException} from "../../src/domain/exception/potion-limit-usage-reached-exception";
 
 describe('CombatServiceTest', () => {
 
@@ -219,6 +220,54 @@ describe('CombatServiceTest', () => {
                 id: encounterId, adventurerId: gimli.id!, monster: goblin,
             });
         }).toThrow(IllegalPotionUsageException);
+    });
+
+    test('adventurerCanHealThemselfOnlyOncePerEncounter', () => {
+        // Arrange
+        const usedPotions: string[] = [];
+
+        // Collaboration test: we expec the HealService to hve a certain behavior
+        healService.heal.mockImplementation((adventurer: Adventurer, encounterId: string) => {
+            if (usedPotions.includes(encounterId)) {
+                throw new PotionLimitUsageReachedException();
+            }
+            usedPotions.push(encounterId);
+            return {
+                ...adventurer,
+                hp: adventurer.hp + 5,
+                numberOfPotions: adventurer.numberOfPotions - 1,
+            };
+        });
+        const combatServiceWithMock = new CombatService(
+            diceThrower as unknown as DiceThrower,
+            damageCalculatorService as unknown as DamageCalculatorService,
+            healService as unknown as HealService,
+        );
+
+        const gimli: Adventurer = {
+            id: null, name: "Gimli", weapons: [],
+            hp: 1, attack: 5, defense: 5, money: 0, numberOfPotions: 2,
+        };
+        const encounterId = randomUUID();
+        const goblin = goblinMonster();
+        diceThrower.rollToHit.mockReturnValue(false);
+
+        // Act
+        combatServiceWithMock.heal(gimli, {
+            id: encounterId, adventurerId: gimli.id!, monster: goblin,
+        });
+
+        const healedGimli: Adventurer = {
+            id: null, name: "Gimli", weapons: [],
+            hp: 6, attack: 5, defense: 5, money: 0, numberOfPotions: 1,
+        };
+
+        // Assert
+        expect(() => {
+            combatServiceWithMock.heal(healedGimli, {
+                id: encounterId, adventurerId: gimli.id!, monster: goblin,
+            });
+        }).toThrow(PotionLimitUsageReachedException);
     });
 
     test('adventurerCanHealAndThenDieFromMonsterAttack', () => {

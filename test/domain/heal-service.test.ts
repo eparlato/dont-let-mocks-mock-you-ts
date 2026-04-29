@@ -44,6 +44,9 @@ describe('HealServiceTest', () => {
     });
 
     test('adventurerCanOnlyHealOncePerEncounter', () => {
+        // Contract test of CombastServiceTest#adventurerCanHealThemselfOnlyOncePerEncounter
+        // Proves the real HealService actually behaves the way the mock assumes it does
+
         const healService = new HealService();
         const adventurer: Adventurer = {
             id: null,
