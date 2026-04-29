@@ -63,6 +63,29 @@ describe('CombatServiceTest', () => {
         });
     });
 
+    test('adventurerCanAttackWithADagger', () => {
+        const combatServiceWithRealDamage = new CombatService(
+            diceThrower as unknown as DiceThrower,
+            new DamageCalculatorService(),
+            new HealService(),
+        );
+        const gimli: Adventurer = {
+            id: null, name: "Gimli", weapons: [Weapon.DAGGER],
+            hp: 20, attack: 5, defense: 5, money: 0, numberOfPotions: 2,
+        };
+        const goblin: Monster = { name: "Goblin", hp: 10, attack: 3, defense: 3 };
+        diceThrower.rollToHit.mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+        const result = combatServiceWithRealDamage.handleAttack(gimli, goblin);
+
+        // real damage: Math.max(5 + 2 - 3, 0) = 4
+        expect(result.actions).toHaveLength(2);
+        expect(result.actions[0]).toBe("Gimli attacks... And hit for 4 damage!");
+        expect(result.actions[1]).toBe("Goblin attacks... But misses!");
+        expect(result.updatedAdventurer).toEqual(gimli);
+        expect(result.updatedMonster).toEqual({ name: "Goblin", hp: 6, attack: 3, defense: 3 });
+    });
+
     test('adventurerCanHitTheMonsterAndBeMissed', () => {
         const gimli = gimliAdventurer();
         const goblin = goblinMonster();
