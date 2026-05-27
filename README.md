@@ -20,6 +20,8 @@ unit tests.
 npm start
 ```
 
+The application will start and be available at http://localhost:7000
+
 ## API Usage
 
 The API provides the following endpoints:
@@ -67,6 +69,17 @@ Example:
 
 ```
 POST /attack/123e4567-e89b-12d3-a456-426614174000
+```
+
+Full sequence example with curl
+
+```bash
+curl -X POST http://localhost:7000/create/Aragorn/sword
+
+curl -X POST http://localhost:7000/start-encounter/d69501c6-bcdc-4b26-8e08-6ffe112819ae
+
+curl -X POST http://localhost:7000/attack/d69501c6-bcdc-4b26-8e08-6ffe112819ae
+
 ```
 
 ### Use a Healing Potion
